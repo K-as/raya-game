@@ -1,48 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sampul Raya Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ketupat Catch Raya</title>
 
 <style>
 
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:system-ui;
+}
+
 body{
-font-family:Arial;
-text-align:center;
-background:#0b7a3d;
-color:white;
+background:linear-gradient(180deg,#0f7a3f,#064d2b);
+height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-height:100vh;
-margin:0;
+color:white;
 }
 
-.container{
-width:90%;
-max-width:350px;
+.card{
+width:95%;
+max-width:420px;
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(12px);
+border-radius:22px;
+padding:20px;
+box-shadow:0 20px 40px rgba(0,0,0,0.4);
+text-align:center;
+}
+
+h1{
+font-size:26px;
+margin-bottom:6px;
+}
+
+canvas{
+background:rgba(0,0,0,0.25);
+border-radius:12px;
+margin-top:12px;
+}
+
+.stats{
+display:flex;
+justify-content:space-between;
+margin-top:8px;
 }
 
 button{
-font-size:22px;
-padding:15px;
+margin-top:12px;
 width:100%;
+padding:14px;
+font-size:18px;
 border:none;
-border-radius:10px;
+border-radius:12px;
 background:gold;
+font-weight:700;
+cursor:pointer;
 }
 
-#tapArea{
-margin-top:20px;
-padding:40px;
-background:#ffffff20;
-border-radius:15px;
-font-size:24px;
+.info{
+text-align:left;
+font-size:14px;
+margin-top:10px;
+line-height:1.5;
 }
 
 .result{
-margin-top:20px;
-font-size:28px;
+margin-top:14px;
+font-size:22px;
 font-weight:bold;
 }
 
@@ -51,18 +81,39 @@ font-weight:bold;
 
 <body>
 
-<div class="container">
+<div class="card">
 
-<h2>🎉 Sampul Raya Game 🎉</h2>
+<h1>🎉 Ketupat Catch 🎉</h1>
 
-<p>TAP SEBANYAK MUNGKIN DALAM 5 SAAT</p>
+<div id="intro">
+
+<div class="info">
+
+📖 <b>Cara Main</b>
+
+<br><br>
+
+🟩 Tangkap ketupat untuk tambah score  
+💣 Elak bom! Bom akan tolak score  
+⏱ Masa permainan: 20 saat  
+📱 Gerakkan jari untuk kawal bakul  
+
+<br><br>
+
+🏆 Lagi tinggi score → lagi besar duit raya!
+
+</div>
 
 <button onclick="startGame()">Start Game</button>
 
-<div id="tapArea">Tap Here</div>
+</div>
 
-<p>Score: <span id="score">0</span></p>
-<p>Time: <span id="time">5</span></p>
+<canvas id="game" width="360" height="420" style="display:none"></canvas>
+
+<div class="stats" style="display:none" id="stats">
+<div>Score: <span id="score">0</span></div>
+<div>Time: <span id="time">20</span>s</div>
+</div>
 
 <div class="result" id="result"></div>
 
@@ -70,41 +121,152 @@ font-weight:bold;
 
 <script>
 
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+let basketX=150;
+let objects=[];
 let score=0;
-let time=5;
-let gameRunning=false;
+let time=20;
+let running=false;
+
+const basketWidth=90;
+
+document.addEventListener("mousemove",e=>{
+basketX=e.offsetX-basketWidth/2;
+});
+
+document.addEventListener("touchmove",e=>{
+let rect=canvas.getBoundingClientRect();
+basketX=e.touches[0].clientX-rect.left-basketWidth/2;
+});
+
+function spawnObject(){
+
+let type=Math.random()<0.8?"ketupat":"bomb";
+
+objects.push({
+x:Math.random()*330,
+y:-20,
+speed:2+Math.random()*2,
+type:type
+});
+
+}
+
+function drawBasket(){
+
+ctx.fillStyle="#c79a55";
+ctx.fillRect(basketX,380,basketWidth,14);
+
+ctx.strokeStyle="#8b5a2b";
+ctx.lineWidth=2;
+
+for(let i=0;i<basketWidth;i+=10){
+ctx.beginPath();
+ctx.moveTo(basketX+i,380);
+ctx.lineTo(basketX+i,394);
+ctx.stroke();
+}
+
+}
+
+function drawKetupat(x,y){
+
+ctx.save();
+
+ctx.translate(x,y);
+ctx.rotate(Math.PI/4);
+
+ctx.fillStyle="#2ecc71";
+ctx.fillRect(-10,-10,20,20);
+
+ctx.restore();
+
+}
+
+function drawBomb(x,y){
+
+ctx.font="24px serif";
+ctx.fillText("💣",x,y);
+
+}
+
+function update(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+drawBasket();
+
+objects.forEach((o,i)=>{
+
+o.y+=o.speed;
+
+if(o.type==="ketupat"){
+drawKetupat(o.x,o.y);
+}else{
+drawBomb(o.x,o.y);
+}
+
+if(
+o.y>370 &&
+o.x>basketX &&
+o.x<basketX+basketWidth
+){
+
+if(o.type==="ketupat"){
+score++;
+}else{
+score=Math.max(0,score-3);
+}
+
+document.getElementById("score").innerText=score;
+objects.splice(i,1);
+
+}
+
+if(o.y>420){
+objects.splice(i,1);
+}
+
+});
+
+if(Math.random()<0.04) spawnObject();
+
+if(running) requestAnimationFrame(update);
+
+}
 
 function startGame(){
 
+document.getElementById("intro").style.display="none";
+canvas.style.display="block";
+document.getElementById("stats").style.display="flex";
+
 score=0;
-time=5;
-gameRunning=true;
+time=20;
+objects=[];
+running=true;
 
-document.getElementById("score").innerHTML=score;
-document.getElementById("time").innerHTML=time;
-document.getElementById("result").innerHTML="";
+document.getElementById("score").innerText=0;
 
-let timer=setInterval(function(){
+update();
+
+let timer=setInterval(()=>{
 
 time--;
-document.getElementById("time").innerHTML=time;
+document.getElementById("time").innerText=time;
 
 if(time<=0){
+
 clearInterval(timer);
-gameRunning=false;
+running=false;
+
 showPrize();
+
 }
 
 },1000);
-
-}
-
-document.getElementById("tapArea").onclick=function(){
-
-if(gameRunning){
-score++;
-document.getElementById("score").innerHTML=score;
-}
 
 }
 
@@ -112,27 +274,28 @@ function showPrize(){
 
 let prize="";
 
-if(score<=20){
+if(score<5){
 prize="RM1 🙂";
 }
-else if(score<=40){
+else if(score<10){
 prize="RM5 🙂";
 }
-else if(score<=60){
+else if(score<15){
 prize="RM10 🎉";
 }
-else if(score<=80){
+else if(score<20){
 prize="RM20 🤑";
 }
 else{
 prize="RM50 JACKPOT 🎊";
 }
 
-document.getElementById("result").innerHTML="Hadiah Anda: "+prize;
+document.getElementById("result").innerText="Hadiah Anda: "+prize;
 
 }
 
 </script>
 
 </body>
+
 </html>
