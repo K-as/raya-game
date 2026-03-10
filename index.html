@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sampul Raya Game</title>
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+background:#0b7a3d;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+.container{
+width:90%;
+max-width:350px;
+}
+
+button{
+font-size:22px;
+padding:15px;
+width:100%;
+border:none;
+border-radius:10px;
+background:gold;
+}
+
+#tapArea{
+margin-top:20px;
+padding:40px;
+background:#ffffff20;
+border-radius:15px;
+font-size:24px;
+}
+
+.result{
+margin-top:20px;
+font-size:28px;
+font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>🎉 Sampul Raya Game 🎉</h2>
+
+<p>TAP SEBANYAK MUNGKIN DALAM 5 SAAT</p>
+
+<button onclick="startGame()">Start Game</button>
+
+<div id="tapArea">Tap Here</div>
+
+<p>Score: <span id="score">0</span></p>
+<p>Time: <span id="time">5</span></p>
+
+<div class="result" id="result"></div>
+
+</div>
+
+<script>
+
+let score=0;
+let time=5;
+let gameRunning=false;
+
+function startGame(){
+
+score=0;
+time=5;
+gameRunning=true;
+
+document.getElementById("score").innerHTML=score;
+document.getElementById("time").innerHTML=time;
+document.getElementById("result").innerHTML="";
+
+let timer=setInterval(function(){
+
+time--;
+document.getElementById("time").innerHTML=time;
+
+if(time<=0){
+clearInterval(timer);
+gameRunning=false;
+showPrize();
+}
+
+},1000);
+
+}
+
+document.getElementById("tapArea").onclick=function(){
+
+if(gameRunning){
+score++;
+document.getElementById("score").innerHTML=score;
+}
+
+}
+
+function showPrize(){
+
+let prize="";
+
+if(score<=20){
+prize="RM1 🙂";
+}
+else if(score<=40){
+prize="RM5 🙂";
+}
+else if(score<=60){
+prize="RM10 🎉";
+}
+else if(score<=80){
+prize="RM20 🤑";
+}
+else{
+prize="RM50 JACKPOT 🎊";
+}
+
+document.getElementById("result").innerHTML="Hadiah Anda: "+prize;
+
+}
+
+</script>
+
+</body>
+</html>
